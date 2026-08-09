@@ -8,7 +8,8 @@ async function loadCategories() {
 
     try {
 
-        const res = await fetch("data/categories.json");
+        // PERBAIKAN: Tambahkan garis miring / di depan path
+        const res = await fetch("/data/categories.json");
 
         if (!res.ok) throw new Error();
 
@@ -45,7 +46,6 @@ function renderCategories() {
             p.category === cat.name
         ).length;
 
-        // PERBAIKAN: Tambahkan onclick="filterCategory('${cat.name}')" agar bisa diklik
         container.innerHTML += `
 
         <div
@@ -132,4 +132,4 @@ function pilihKategori(category, id) {
 
 /* ========================= */
 
-loadCategories();￼Enter
+loadCategories();
