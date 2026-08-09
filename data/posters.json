@@ -14,7 +14,6 @@
     "content":"ISI CAPTION TAUHID LENGKAP DI SINI.",
     "date":"2026-08-04"
   },
-
   {
     "id":"syirik-001",
     "title":"Bahaya Syirik",
@@ -30,11 +29,10 @@
     "content":"ISI CAPTION SYIRIK LENGKAP DI SINI.",
     "date":"2026-08-04"
   },
-
   {
     "id":"bidah-001",
     "title":"Larangan Bidah",
-    "category":"bidah",
+    "category":"Bid'ah",
     "tags":[
       "bidah",
       "sunnah",
@@ -45,7 +43,6 @@
     "content":"ISI CAPTION BID'AH LENGKAP DI SINI.",
     "date":"2026-08-04"
   },
-
   {
     "id":"akidah-001",
     "title":"Jangan seperti akidah qorun",
