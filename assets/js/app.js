@@ -1,135 +1,107 @@
-let categoryData = [];
 
-/* =========================
-   LOAD KATEGORI
-========================= */
 
-async function loadCategories() {
+let posterData = [];
 
+async function loadPosters() {
     try {
-
-        // PERBAIKAN: Tambahkan garis miring / di depan path
-        const res = await fetch("/data/categories.json");
-
+        const res = await fetch("/data/posters.json");
         if (!res.ok) throw new Error();
-
-        categoryData = await res.json();
-
-        renderCategories();
-
+        posterData = await res.json();
+        renderPoster(posterData);
+        if (typeof updateCategoryCount === "function") {
+            updateCategoryCount();
+        }
     } catch (e) {
-
-        document.getElementById("category-list").innerHTML = `
-        <div class="loading">
-            ❌ Gagal memuat kategori.
-        </div>
-        `;
-
+        document.getElementById("post-list").innerHTML = `<div class="loading">❌ Gagal memuat poster.</div>`;
     }
-
 }
 
-/* =========================
-   RENDER KATEGORI
-========================= */
-
-function renderCategories() {
-
-    const container =
-    document.getElementById("category-list");
-
+function renderPoster(data) {
+    const container = document.getElementById("post-list");
     container.innerHTML = "";
-
-    categoryData.forEach(cat => {
-
-        const jumlah = posterData.filter(p =>
-            p.category === cat.name
-        ).length;
-
-        container.innerHTML += `
-
-        <div
-        class="card"
-        id="cat-${cat.id}"
-        onclick="filterCategory('${cat.name}')">
-
-            <div style="font-size:42px;">
-                ${cat.icon}
-            </div>
-
-            <h3 style="
-                margin-top:12px;
-                color:white;
-                font-size:24px;
-            ">
-                ${cat.name}
-            </h3>
-
-            <p style="
-                margin-top:10px;
-                color:#bdbdbd;
-                line-height:1.6;
-                font-size:15px;
-            ">
-                ${cat.description}
-            </p>
-
-            <div style="
-                margin-top:18px;
-                color:#FFD700;
-                font-weight:bold;
-            ">
-                📄 ${jumlah} Poster
-            </div>
-
-        </div>
-
-        `;
-
-    });
-
-}
-
-/* =========================
-   UPDATE JUMLAH POSTER
-========================= */
-
-function updateCategoryCount() {
-
-    if (categoryData.length === 0) return;
-
-    renderCategories();
-
-}
-
-/* =========================
-   PILIH KATEGORI
-========================= */
-
-function pilihKategori(category, id) {
-
-    document.querySelectorAll(".card").forEach(card => {
-
-        card.style.borderColor = "#222";
-        card.style.boxShadow = "none";
-
-    });
-
-    const aktif =
-    document.getElementById("cat-" + id);
-
-    if (aktif) {
-
-        aktif.style.borderColor = "#FFD700";
-        aktif.style.boxShadow =
-        "0 0 20px rgba(255,215,0,.35)";
-
+    if (!data || data.length === 0) {
+        container.innerHTML = `<div class="loading">Tidak ada hasil.</div>`;
+        return;
     }
-
-    filterCategory(category);
-
+    data.forEach(item => {
+        container.innerHTML += `
+        <div class="poster">
+            <img src="${item.image}" alt="${item.title}" onclick="bukaPoster('${item.id}')">
+            <h3 onclick="bukaPoster('${item.id}')">${item.title}</h3>
+            <p>${item.caption}</p>
+            <small>📂 ${item.category}</small>
+            <button onclick="event.stopPropagation();toggleCaption('${item.id}')">📖 Baca Caption</button>
+            <button onclick="event.stopPropagation();copyCaption('${item.id}')">📋 Copy Caption</button>
+            <div id="caption-${item.id}" class="caption-box">${item.content}</div>
+        </div>`;
+    });
 }
 
-/* ========================= */
+function bukaPoster(id) {
+    location.href = "/poster.html?id=" + encodeURIComponent(id);
+}
 
-loadCategories();
+function toggleCaption(id) {
+    const box = document.getElementById("caption-" + id);
+    if (!box) return;
+    if (box.style.display === "block") {
+        box.style.display = "none";
+    } else {
+        box.style.display = "block";
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+function copyCaption(id) {
+    const poster = posterData.find(p => p.id === id);
+    if (!poster) return;
+    navigator.clipboard.writeText(poster.content);
+    alert("✅ Caption berhasil disalin");
+}
+
+const search = document.getElementById("search");
+const resultBox = document.createElement("div");
+resultBox.id = "search-result";
+search.after(resultBox);
+
+search.addEventListener("input", function() {
+    const key = this.value.trim().toLowerCase();
+    if (key === "") {
+        resultBox.innerHTML = "";
+        renderPoster(posterData);
+        return;
+    }
+    const hasil = posterData.filter(item => {
+        const tags = (item.tags || []).join(" ").toLowerCase();
+        return (item.title.toLowerCase().includes(key) || item.category.toLowerCase().includes(key) || item.caption.toLowerCase().includes(key) || tags.includes(key));
+    });
+    renderPoster(hasil);
+    resultBox.innerHTML = "";
+    if (hasil.length === 0) {
+        resultBox.innerHTML = `<div class="search-item">Tidak ada hasil.</div>`;
+        return;
+    }
+    hasil.forEach(item => {
+        resultBox.innerHTML += `<div class="search-item" onclick="pilihPoster('${item.id}')"><b>📚 ${item.title}</b> <small>📂 ${item.category}</small></div>`;
+    });
+});
+
+function pilihPoster(id) {
+    resultBox.innerHTML = "";
+    search.value = "";
+    const hasil = posterData.filter(item => item.id === id);
+    renderPoster(hasil);
+    setTimeout(() => {
+        document.getElementById("post-list").scrollIntoView({ behavior: "smooth" });
+    }, 150);
+}
+
+function filterCategory(category) {
+    resultBox.innerHTML = "";
+    search.value = "";
+    const hasil = posterData.filter(item => item.category === category);
+    renderPoster(hasil);
+    document.getElementById("post-list").scrollIntoView({ behavior: "smooth" });
+}
+
+loadPosters();
